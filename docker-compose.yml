@@ -6,10 +6,10 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
+      - ./prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
     ports:
       - "9090:9090"
     restart: unless-stopped
-
 
   grafana:
     image: grafana/grafana
@@ -23,15 +23,38 @@ services:
       - "3000:3000"
     restart: unless-stopped
 
-  node_exporter:
-    image: prom/node-exporter:latest
-    ports:
-      - "9100:9100"
-    restart: unless-stopped
+  # node_exporter:
+  #   image: prom/node-exporter:latest
+  #   ports:
+  #     - "9100:9100"
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+
+  postgres:
+    container_name: t42-postgres
+    build: ./postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
+      - dbdata:/var/lib/postgresql/data
+    # Uncomment if you want to expose ports
+    # ports:
+    #   - "5432:5432"
+    restart: unless-stopped
+
+  postgres_exporter:
+    image: wrouesnel/postgres_exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@t42-postgres:5432/${POSTGRES_DB}?sslmode=disable"
+    ports:
+      - "9187:9187"
+    restart: unless-stopped
 
 volumes:
   prometheus_data:
+  dbdata:

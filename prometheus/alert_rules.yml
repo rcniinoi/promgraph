@@ -1,0 +1,38 @@
+groups:
+  - name: example-alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: sum(rate(node_cpu_seconds_total{mode!="idle"}[1m])) by (instance) > 0.8
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High CPU Usage detected on {{ $labels.instance }}"
+          description: "CPU usage is above 80% for more than 5 minutes."
+
+      - alert: HighMemoryUsage
+        expr: node_memory_Active_bytes / node_memory_MemTotal_bytes > 0.8
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High Memory Usage detected on {{ $labels.instance }}"
+          description: "Memory usage is above 80% for more than 5 minutes."
+
+      - alert: PostgresDeadlocks
+        expr: rate(pg_stat_activity_waiting_count[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Postgres Deadlocks detected"
+          description: "There have been deadlocks detected in the Postgres database."
+
+      - alert: SlowQueryPerformance
+        expr: pg_stat_statements_mean_time > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow query performance detected on {{ $labels.instance }}"
+          description: "Average query execution time is above 1000ms for more than 5 minutes."
