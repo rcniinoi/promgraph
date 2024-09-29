@@ -3,6 +3,10 @@ version: '3.7'
 services:
   prometheus:
     image: prom/prometheus:latest
+    command:
+      - '--storage.tsdb.retention.time=30d'  # Adjust the retention period as needed
+      - '--storage.tsdb.path=/prometheus'    # Path for data storage
+      - '--config.file=/etc/prometheus/prometheus.yml'  # Path for the config file
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
@@ -23,15 +27,15 @@ services:
       - "3000:3000"
     restart: unless-stopped
 
-  # node_exporter:
-  #   image: prom/node-exporter:latest
-  #   ports:
-  #     - "9100:9100"
-  #   restart: unless-stopped
-  #   volumes:
-  #     - /proc:/host/proc:ro
-  #     - /sys:/host/sys:ro
-  #     - /:/rootfs:ro
+  node_exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
 
   postgres:
     container_name: t42-postgres
